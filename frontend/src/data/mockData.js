@@ -136,8 +136,7 @@ export const categories = {
     { id: 'traditional', name: 'Traditional Attire', icon: 'BookOpen' },
     { id: 'shirts', name: 'Shirts', icon: 'Shirt' },
     { id: 'pants', name: 'Pants', icon: 'Wind' },
-    { id: 'inner-wears', name: 'Inner Wears', icon: 'Package' },
-    { id: 'accessories', name: 'Accessories', icon: 'Package' }
+    { id: 'inner-wears', name: 'Inner Wears', icon: 'Package' }
   ],
   women: [
     { id: 'traditional', name: 'Traditional Wears', description: 'Sarees and more' },
