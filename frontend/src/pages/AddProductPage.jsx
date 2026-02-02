@@ -50,12 +50,6 @@ const SUBCATEGORY_MAP = {
     salwar: ['Traditional', 'Modern', 'Party'],
     tops: ['Casual', 'Ethnic', 'Western'],
     leggings: ['Plain', 'Printed', 'Palazzo']
-  },
-  accessories: {
-    belts: ['Leather', 'Fabric', 'Designer'],
-    socks: ['Regular', 'Sports', 'Formal'],
-    towels: ['Bath', 'Hand', 'Face'],
-    others: ['General']
   }
 };
 
