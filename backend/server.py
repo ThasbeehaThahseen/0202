@@ -294,32 +294,99 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
+def hex_to_rgb(hex_color):
+    """Convert hex color to RGB tuple"""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def color_distance(rgb1, rgb2):
+    """Calculate Euclidean distance between two RGB colors"""
+    return sum((a - b) ** 2 for a, b in zip(rgb1, rgb2)) ** 0.5
+
+def find_closest_color(target_rgb, color_palette):
+    """Find the closest color name from palette based on RGB values"""
+    min_distance = float('inf')
+    closest_color = "Unknown"
+    
+    for color in color_palette:
+        palette_rgb = hex_to_rgb(color["hex"])
+        distance = color_distance(target_rgb, palette_rgb)
+        
+        if distance < min_distance:
+            min_distance = distance
+            closest_color = color["name"]
+    
+    return closest_color
+
+def is_background_color(rgb):
+    """Check if a color is likely a background color (white, very light, or very dark)"""
+    r, g, b = rgb
+    
+    # Check if it's white or very light (RGB values > 240)
+    if r > 240 and g > 240 and b > 240:
+        return True
+    
+    # Check if it's very dark/black (RGB values < 15)
+    if r < 15 and g < 15 and b < 15:
+        return True
+    
+    # Check if it's very close to pure white
+    if abs(r - 255) < 10 and abs(g - 255) < 10 and abs(b - 255) < 10:
+        return True
+    
+    return False
+
 async def detect_color_from_image(image_base64: str) -> dict:
-    """Detect primary color from image using OpenAI Vision"""
+    """Detect primary color from image using image processing"""
     color_names = [c["name"] for c in COLOR_PALETTE]
+    
     try:
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"color-detection-{uuid.uuid4()}",
-            system_message="You are a color detection expert. Analyze clothing images and identify the primary/dominant color accurately. Respond with just the color name."
-        ).with_model("openai", "gpt-5.2")
+        # Decode base64 image
+        image_data = base64.b64decode(image_base64)
+        image = Image.open(BytesIO(image_data))
         
-        image_content = ImageContent(image_base64=image_base64)
+        # Convert to RGB if needed
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         
-        message = UserMessage(
-            text=f"What is the primary/dominant color of the clothing item in this image? Choose from these colors: {', '.join(color_names)}. Respond with ONLY the color name, nothing else.",
-            file_contents=[image_content]
-        )
+        # Resize image for faster processing (max 400px on longest side)
+        max_size = 400
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = tuple(int(dim * ratio) for dim in image.size)
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
         
-        response = await chat.send_message(message)
-        detected_color = response.strip()
+        # Get all pixels
+        pixels = list(image.getdata())
         
-        # Find closest match in palette
-        for color in COLOR_PALETTE:
-            if color["name"].lower() in detected_color.lower():
-                return {"primary_color": color["name"], "suggested_colors": color_names}
+        # Filter out background colors (white, very light, very dark)
+        filtered_pixels = [pixel for pixel in pixels if not is_background_color(pixel)]
+        
+        # If too many pixels were filtered, use all pixels
+        if len(filtered_pixels) < len(pixels) * 0.1:
+            filtered_pixels = pixels
+        
+        # Count color occurrences
+        color_counter = Counter(filtered_pixels)
+        
+        # Get the top 5 most common colors
+        most_common_colors = color_counter.most_common(10)
+        
+        # Calculate the average of top colors (weighted by frequency)
+        total_count = sum(count for _, count in most_common_colors)
+        avg_r = sum(color[0] * count for color, count in most_common_colors) / total_count
+        avg_g = sum(color[1] * count for color, count in most_common_colors) / total_count
+        avg_b = sum(color[2] * count for color, count in most_common_colors) / total_count
+        
+        dominant_rgb = (int(avg_r), int(avg_g), int(avg_b))
+        
+        # Find closest color in our palette
+        detected_color = find_closest_color(dominant_rgb, COLOR_PALETTE)
+        
+        logging.info(f"Detected color: {detected_color} (RGB: {dominant_rgb})")
         
         return {"primary_color": detected_color, "suggested_colors": color_names}
+        
     except Exception as e:
         logging.error(f"Color detection error: {str(e)}")
         return {"primary_color": "Unknown", "suggested_colors": color_names}
