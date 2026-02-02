@@ -294,6 +294,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
 
 async def detect_color_from_image(image_base64: str) -> dict:
     """Detect primary color from image using OpenAI Vision"""
+    color_names = [c["name"] for c in COLOR_PALETTE]
     try:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
@@ -303,7 +304,6 @@ async def detect_color_from_image(image_base64: str) -> dict:
         
         image_content = ImageContent(image_base64=image_base64)
         
-        color_names = [c["name"] for c in COLOR_PALETTE]
         message = UserMessage(
             text=f"What is the primary/dominant color of the clothing item in this image? Choose from these colors: {', '.join(color_names)}. Respond with ONLY the color name, nothing else.",
             file_contents=[image_content]
