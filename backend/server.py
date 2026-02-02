@@ -315,12 +315,12 @@ async def detect_color_from_image(image_base64: str) -> dict:
         # Find closest match in palette
         for color in COLOR_PALETTE:
             if color["name"].lower() in detected_color.lower():
-                return {"primary_color": color["name"], "suggested_colors": COLOR_PALETTE}
+                return {"primary_color": color["name"], "suggested_colors": color_names}
         
-        return {"primary_color": detected_color, "suggested_colors": COLOR_PALETTE}
+        return {"primary_color": detected_color, "suggested_colors": color_names}
     except Exception as e:
         logging.error(f"Color detection error: {str(e)}")
-        return {"primary_color": "Unknown", "suggested_colors": COLOR_PALETTE}
+        return {"primary_color": "Unknown", "suggested_colors": color_names}
 
 # ==================== AUTHENTICATION ROUTES ====================
 
