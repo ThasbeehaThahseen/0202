@@ -35,8 +35,7 @@ export const OwnerDashboardPage = () => {
       { id: 'traditional', name: 'Traditional Wear' },
       { id: 'shirts', name: 'Shirts' },
       { id: 'pants', name: 'Pants' },
-      { id: 'inner-wears', name: 'Inner Wears' },
-      { id: 'accessories', name: 'Accessories' }
+      { id: 'inner-wears', name: 'Inner Wears' }
     ],
     women: [
       { id: 'traditional', name: 'Traditional' },
