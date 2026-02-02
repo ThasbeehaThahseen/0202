@@ -15,6 +15,8 @@ from passlib.context import CryptContext
 import base64
 from io import BytesIO
 from PIL import Image
+from collections import Counter
+import colorsys
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 
 ROOT_DIR = Path(__file__).parent
