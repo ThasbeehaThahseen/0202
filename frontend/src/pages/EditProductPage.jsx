@@ -604,6 +604,18 @@ export const EditProductPage = () => {
                   The website will auto-detect the color. Confirm or change it.
                 </p>
                 
+                {/* Show uploaded image */}
+                {formData.images.length > 0 && (
+                  <div className="preview-image-container">
+                    <img 
+                      src={formData.images.find(img => img.is_primary)?.url || formData.images[0].url} 
+                      alt="Product preview" 
+                      className="preview-image"
+                      style={{ maxWidth: '300px', maxHeight: '300px', objectFit: 'contain', margin: '20px auto', display: 'block', border: '2px solid #e5e7eb', borderRadius: '8px' }}
+                    />
+                  </div>
+                )}
+                
                 <Button 
                   onClick={detectColorFromImage} 
                   disabled={detectingColor || formData.images.length === 0}
