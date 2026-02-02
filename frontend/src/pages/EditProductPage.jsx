@@ -671,6 +671,18 @@ export const EditProductPage = () => {
               <div className="step-content" data-testid="step-other-colors">
                 <p className="step-instruction">Is this product available in other colors?</p>
                 
+                {/* Show uploaded image */}
+                {formData.images.length > 0 && (
+                  <div className="preview-image-container">
+                    <img 
+                      src={formData.images.find(img => img.is_primary)?.url || formData.images[0].url} 
+                      alt="Product preview" 
+                      className="preview-image"
+                      style={{ maxWidth: '300px', maxHeight: '300px', objectFit: 'contain', margin: '20px auto', display: 'block', border: '2px solid #e5e7eb', borderRadius: '8px' }}
+                    />
+                  </div>
+                )}
+                
                 <div className="yes-no-buttons">
                   <Button
                     variant={formData.hasOtherColors ? "default" : "outline"}
